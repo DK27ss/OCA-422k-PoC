@@ -27,7 +27,7 @@
 
 ## Summary
 
-The OCA token on BSC was exploited through a design flaw in the token's "recycling" mechanism, the `SwapHelper` contract exposes a `sellOCA()` function that sells OCA for USDC on PancakeSwap, then calls `OCA.recycle()` to withdraw OCA directly from the pair's reserves, this mechanism causes a **double-drain**: the pair loses both its USDC (via the swap) and its OCA (via the recycle), with no compensation in return.
+The OCA token on BSC was exploited through a design flaw in the token's "recycling" mechanism, the `SwapHelper` contract exposes a `sellOCA()` function that sells OCA for USDC on PancakeSwap, then calls `OCA.recycle()` to withdraw OCA directly from the pair's reserves, this mechanism causes a **deflation** the pair loses both its USDC (via the swap) and its OCA (via the recycle), with no compensation in return.
 
 The attacker used a ~8.7M USDC flash loan from Moolah to amplify the price manipulation, then executed 3 rounds of `sellOCA` followed by a final swap to extract ~$422k from the pair.
 
