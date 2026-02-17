@@ -120,9 +120,13 @@ Moolah:
   Available USDC : 8,704,860.14 USDC
 ```
 
+Attack TX : https://app.blocksec.com/phalcon/explorer/tx/bsc/0x514141dac28a8a53f90312e94c58476615c2c5ce844d8d37999bdf8a66413d5c
+
 ### 1 — Flash loan
 
 The attacker borrows **8,704,860 USDC** from Moolah. The flash loan is free (no fees) and must be repaid within the same transaction.
+
+<img width="1623" height="311" alt="image" src="https://github.com/user-attachments/assets/930fd3a1-e117-46fb-bf38-6fce59d72ce9" />
 
 ### 2 — Round 1: Flash swap + sellOCA
 
@@ -133,6 +137,8 @@ Before: Pair(427k USDC, 987k OCA)
 Swap:   8.7M USDC → 940,991 OCA
 After:  Pair(9.1M USDC, 2.6 OCA)    ← pair massively imbalanced
 ```
+
+<img width="1843" height="311" alt="image" src="https://github.com/user-attachments/assets/dd457311-1112-4388-b652-7a788a920db5" />
 
 The attacker keeps 1% of the OCA (~9,409 OCA) for the final swap and calls `sellOCA(931,581 OCA)`
 
@@ -170,6 +176,8 @@ After Round 3:
   Attacker:  8,694,530 USDC
 ```
 
+<img width="2213" height="347" alt="image" src="https://github.com/user-attachments/assets/ecbf5a57-d10f-404a-86e6-f56203556f3d" />
+
 ### 5 — Final swap
 
 The attacker sells the ~9,409 accumulated OCA (the 1% kept from each round) via a normal PancakeSwap swap
@@ -177,6 +185,8 @@ The attacker sells the ~9,409 accumulated OCA (the 1% kept from each round) via 
 ```
 Swap: 9,409 OCA → 432,690 USDC
 ```
+
+<img width="2194" height="531" alt="image" src="https://github.com/user-attachments/assets/a31d6afd-4c5b-4825-919f-dc0ed9ef3e4e" />
 
 This swap is extremely profitable because the pair has almost no OCA left but still ~437k USDC.
 
