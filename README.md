@@ -1,9 +1,13 @@
 ## OCA/USDC SwapHelper 422k PoC
 
 **Chain:** BSC
+
 **Date:** 2026-02-14
+
 **Block:** 81,020,478
+
 **Profit:** ~$422,361 USDC
+
 **Root Cause:** `SwapHelper.sellOCA()` + `OCAToken.recycle()`
 
 ---
