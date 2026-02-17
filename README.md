@@ -35,7 +35,7 @@ The attacker used a ~8.7M USDC flash loan from Moolah to amplify the price manip
 
 ## OCA Architecture
 
-The OCA token implements a 100% buy tax mechanism and deflation via a `SwapHelper`:
+The OCA token implements a 100% buy tax mechanism and deflation via a `SwapHelper`
 
 ```
 User
@@ -72,7 +72,7 @@ function recycle(address to, uint256 amount) external {
 }
 ```
 
-The vulnerability lies in the interaction between `SwapHelper.sellOCA()` and `OCA.recycle()`, here is the full flow of `sellOCA(amount)`:
+The vulnerability lies in the interaction between `SwapHelper.sellOCA()` and `OCA.recycle()`, here is the full flow of `sellOCA(amount)`
 
 ```
 sellOCA(amount):
@@ -134,7 +134,7 @@ Swap:   8.7M USDC → 940,991 OCA
 After:  Pair(9.1M USDC, 2.6 OCA)    ← pair massively imbalanced
 ```
 
-The attacker keeps 1% of the OCA (~9,409 OCA) for the final swap and calls `sellOCA(931,581 OCA)`:
+The attacker keeps 1% of the OCA (~9,409 OCA) for the final swap and calls `sellOCA(931,581 OCA)`
 
 1. SwapHelper takes 931k OCA from the attacker
 2. SwapHelper does a transferFrom of 25% (~2,445k OCA in the trace) to itself
