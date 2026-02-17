@@ -189,6 +189,8 @@ Flash loan to repay    : 8,704,860.14 USDC
 Gross profit           : 422,361.34 USDC
 ```
 
+<img width="1694" height="196" alt="image" src="https://github.com/user-attachments/assets/918a637e-5a37-40f3-98be-ed6446fe1fee" />
+
 The attacker repays the flash loan, then transfers **2,343 USDC** to `0x4bCD06648a9315A233229B634B89011009F7b195` and keeps the rest.
 
 ---
