@@ -1,4 +1,4 @@
-## OCA/USDC SwapHelper 422k PoC
+## OCA/USDC 422k Exploit
 
 **Chain:** BSC
 
@@ -27,7 +27,7 @@
 
 ## Summary
 
-The OCA token on BSC was exploited through a design flaw in the token's "recycling" mechanism. The `SwapHelper` contract exposes a `sellOCA()` function that sells OCA for USDC on PancakeSwap, then calls `OCA.recycle()` to withdraw OCA directly from the pair's reserves. This mechanism causes a **double-drain**: the pair loses both its USDC (via the swap) and its OCA (via the recycle), with no compensation in return.
+The OCA token on BSC was exploited through a design flaw in the token's "recycling" mechanism, the `SwapHelper` contract exposes a `sellOCA()` function that sells OCA for USDC on PancakeSwap, then calls `OCA.recycle()` to withdraw OCA directly from the pair's reserves, this mechanism causes a **double-drain**: the pair loses both its USDC (via the swap) and its OCA (via the recycle), with no compensation in return.
 
 The attacker used a ~8.7M USDC flash loan from Moolah to amplify the price manipulation, then executed 3 rounds of `sellOCA` followed by a final swap to extract ~$422k from the pair.
 
@@ -72,7 +72,7 @@ function recycle(address to, uint256 amount) external {
 }
 ```
 
-The vulnerability lies in the interaction between `SwapHelper.sellOCA()` and `OCA.recycle()`. Here is the full flow of `sellOCA(amount)`:
+The vulnerability lies in the interaction between `SwapHelper.sellOCA()` and `OCA.recycle()`, here is the full flow of `sellOCA(amount)`:
 
 ```
 sellOCA(amount):
@@ -89,7 +89,7 @@ sellOCA(amount):
   6. OCA.transfer(0xdead, 60% * amount)                       // 60% → burn
 ```
 
-**The problem**: at step 3, the pair receives OCA and sends USDC. Then at step 4, `recycle()` pulls those same OCA back out of the pair. The net result for the pair:
+**The problem**: at step 3, the pair receives OCA and sends USDC, then at step 4, `recycle()` pulls those same OCA back out of the pair.
 
 | Step | Pair receives | Pair loses |
 |------|--------------|------------|
@@ -99,13 +99,13 @@ sellOCA(amount):
 
 The pair is drained on **both sides** with each `sellOCA` call.
 
-Without a flash loan, the drainage is limited by existing reserves. The attacker uses a ~8.7M USDC flash loan to:
+Without a flashloan, the drainage is limited by existing reserves, the attacker uses a ~8.7M USDC flash loan to:
 
-1. **Imbalance the pair**: By swapping 8.7M USDC → OCA, the pair ends up with ~9.1M USDC and only ~2.6 OCA
-2. **Maximize extraction**: Each `sellOCA` converts OCA at an extremely favorable rate (the pair is flooded with USDC)
+1. **Imbalance**: By swapping 8.7M USDC → OCA, the pair ends up with ~9.1M USDC and only ~2.6 OCA
+2. **Maximize**: Each `sellOCA` converts OCA at an extremely favorable rate (the pair is flooded with USDC)
 3. **Repeat**: 3 rounds are enough to drain >98% of the pair's USDC
 
-The `recycle()` function violates a fundamental AMM invariant: **pair reserves should only be modified through swaps, liquidity adds/removes, or fees**. Here, `recycle()` performs a direct `_transfer` from the pair followed by a `sync()`, completely bypassing the pair contract's logic. It is equivalent to an unauthorized `skim()`, but called by a trusted contract.
+The `recycle()` function violates a fundamental AMM invariant: **pair reserves should only be modified through swaps, liquidity adds/removes, or fees**, here `recycle()` performs a direct `_transfer` from the pair followed by a `sync()`, completely bypassing the pair contract's logic. It is equivalent to an unauthorized `skim()`, but called by a trusted contract.
 
 ---
 
@@ -120,13 +120,13 @@ Moolah:
   Available USDC : 8,704,860.14 USDC
 ```
 
-### Step 1 — Flash loan
+### 1 — Flash loan
 
 The attacker borrows **8,704,860 USDC** from Moolah. The flash loan is free (no fees) and must be repaid within the same transaction.
 
-### Step 2 — Round 1: Flash swap + sellOCA
+### 2 — Round 1: Flash swap + sellOCA
 
-**Flash swap**: The attacker uses a PancakeSwap flash swap to exchange 8.7M USDC for OCA.
+**Flashswap**: The attacker uses a PancakeSwap flash swap to exchange 8.7M USDC for OCA.
 
 ```
 Before: Pair(427k USDC, 987k OCA)
@@ -150,7 +150,7 @@ After Round 1:
   Attacker:  8,698,684 USDC
 ```
 
-### Step 3 — Round 2
+### 3 — Round 2
 
 Same mechanism. The attacker re-swaps all USDC into the pair and repeats `sellOCA`.
 
@@ -161,7 +161,7 @@ After Round 2:
   Attacker:  8,696,612 USDC
 ```
 
-### Step 4 — Round 3
+### 4 — Round 3
 
 ```
 After Round 3:
@@ -170,9 +170,9 @@ After Round 3:
   Attacker:  8,694,530 USDC
 ```
 
-### Step 5 — Final swap
+### 5 — Final swap
 
-The attacker sells the ~9,409 accumulated OCA (the 1% kept from each round) via a normal PancakeSwap swap:
+The attacker sells the ~9,409 accumulated OCA (the 1% kept from each round) via a normal PancakeSwap swap
 
 ```
 Swap: 9,409 OCA → 432,690 USDC
@@ -180,7 +180,7 @@ Swap: 9,409 OCA → 432,690 USDC
 
 This swap is extremely profitable because the pair has almost no OCA left but still ~437k USDC.
 
-### Step 6 — Repayment and profit
+### 6 — Repay & profit
 
 ```
 Attacker's total USDC  : 9,127,221.49 USDC
@@ -189,7 +189,7 @@ Flash loan to repay    : 8,704,860.14 USDC
 Gross profit           : 422,361.34 USDC
 ```
 
-The attacker repays the flash loan, then transfers **2,343 USDC** to `0x4bCD...7b195` (fee/commission) and keeps the rest.
+The attacker repays the flash loan, then transfers **2,343 USDC** to `0x4bCD06648a9315A233229B634B89011009F7b195` and keeps the rest.
 
 ---
 
@@ -217,7 +217,7 @@ Each `recycle()` call pulls **2,445,154 OCA** from the pair, distributed as:
 ### Expected result
 
 ```
-[PASS] testExploit()
+[PASS] exec()
   >>> PROFIT : 422361.349112223479237938 USDC
 
   Assertions:
